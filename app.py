@@ -5,6 +5,8 @@ import dash_html_components as html
 import dash_table_experiments as dt
 from dash.dependencies import Input, Output, State
 import pandas as pd
+import csv
+import numpy as np
 import dash_table
 import datetime
 import io
@@ -14,8 +16,8 @@ external_stylesheets = ['bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 colors = {
-    'background': '#990099',
-    'text': '#7FDBFF'
+    'background': '#fff',
+    'text': '#111'
 }
 def generate_table(dataframe):
     return html.Table([
@@ -28,12 +30,15 @@ def generate_table(dataframe):
             ]) for i in range(min(len(dataframe)))
         ])
     ])
-#df = pd.read_csv("1.csv")
+
 #app.scripts.config.serve_locally = True
 #app.config.suppress_callback_exceptions = True
 #app.server.config.suppress_callback_exceptions = True
 #app.config[‘suppress_callback_exceptions’] = True
-
+with open("1.csv", 'r') as f:
+    reader = csv.reader(f, delimiter=',')
+    headers = next(reader)
+    data = np.array(list(reader)).astype(float)
 
 app.layout = html.Div(children=[
     dcc.Upload(
@@ -43,7 +48,7 @@ app.layout = html.Div(children=[
             html.A('Select Files')
         ]),
         style={
-            'width': '100%',
+            'width': '50%',
             'height': '60px',
             'lineHeight': '60px',
             'borderWidth': '1px',
@@ -68,10 +73,8 @@ app.layout = html.Div(children=[
     figure=dict(
         data=[
             dict(
-                x=[1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-                   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012],
-                y=[219, 146, 112, 127, 124, 180, 236, 207, 236, 263,
-                   350, 430, 474, 526, 488, 537, 500, 439],
+                x=data[:,0],
+                y=data[:,1],
                 name='Rest of world',
                 mode=  'markers',
                 marker=dict(
@@ -79,18 +82,20 @@ app.layout = html.Div(children=[
                 line= {'width': 0.5, 'color': 'white'}
                 ),
             ),
-            dict(
-                x=[1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-                   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012],
-                y=[16, 13, 10, 11, 28, 37, 43, 55, 56, 88, 105, 156, 270,
-                   299, 340, 403, 549, 499],
-                name='China',
-                mode=  'markers',
-                marker=dict(
-                    color='rgb(26, 118, 255)',
-                    line= {'width': 0.5, 'color': 'white'}
-                )
-            )
+
+#            dict(
+#                x=[1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+#                   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012],
+#                y=[16, 13, 10, 11, 28, 37, 43, 55, 56, 88, 105, 156, 270,
+#                   299, 340, 403, 549, 499],
+#                name='China',
+#                mode=  'markers',
+#                marker=dict(
+#                    color='rgb(26, 118, 255)',
+#                    line= {'width': 0.5, 'color': 'white'}
+#                )
+#           )
+
         ],
         layout= {
                 'plot_bgcolor': colors['background'],
@@ -139,8 +144,23 @@ def parse_contents(contents, filename, date):
         html.H6(datetime.datetime.fromtimestamp(date)),
         dash_table.DataTable(
             data=df.to_dict('records'),
-            columns=[{'name': i, 'id': i} for i in df.columns]
-        ),
+            columns=[{'name': i, 'id': i} for i in df.columns],
+            style_cell={
+                    'textAlign': 'left',
+                    'border': '1px solid grey'
+            },
+            style_header={'border': '1px solid black'},
+            style_data={
+                'whiteSpace': 'normal',
+                'height': 'auto',
+            },
+            css=[
+                {
+                    'selector': 'table',
+                    'rule': 'width: 50%;'
+                }
+            ],
+            ),
     ])
 
 
