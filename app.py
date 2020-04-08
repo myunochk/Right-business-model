@@ -11,7 +11,7 @@ import dash_table
 import datetime
 import io
 import base64
-external_stylesheets = ['bWLwgP.css']
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
@@ -35,6 +35,7 @@ def generate_table(dataframe):
 #app.config.suppress_callback_exceptions = True
 #app.server.config.suppress_callback_exceptions = True
 #app.config[‘suppress_callback_exceptions’] = True
+
 with open("1.csv", 'r') as f:
     reader = csv.reader(f, delimiter=',')
     headers = next(reader)
@@ -69,58 +70,40 @@ app.layout = html.Div(children=[
         }
     ),
     dcc.Graph(
-    id='my-graph',
-    figure=dict(
-        data=[
-            dict(
-                x=data[:,0],
-                y=data[:,1],
-                name='Rest of world',
-                mode=  'markers',
-                marker=dict(
-                    color='rgb(55, 83, 109)',
-                line= {'width': 0.5, 'color': 'white'}
-                ),
-            ),
-
-#            dict(
-#                x=[1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-#                   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012],
-#                y=[16, 13, 10, 11, 28, 37, 43, 55, 56, 88, 105, 156, 270,
-#                   299, 340, 403, 549, 499],
-#                name='China',
-#                mode=  'markers',
-#                marker=dict(
-#                    color='rgb(26, 118, 255)',
-#                    line= {'width': 0.5, 'color': 'white'}
-#                )
-#           )
-
-        ],
-        layout= {
-                'plot_bgcolor': colors['background'],
-                'paper_bgcolor': colors['background'],
-                'font': {
-                    'color': colors['text']
+        id='my-graph',
+        figure=dict(
+            data=[
+                dict(
+                    x=data[:,0],
+                    y=data[:,1],
+                    name='Rest of world',
+                    mode=  'markers',
+                    marker=dict(
+                        color='rgb(55, 83, 109)',
+                    line= {'width': 0.5, 'color': 'white'}
+                    ),
+                )
+            ],
+            layout= {
+                    'plot_bgcolor': colors['background'],
+                    'paper_bgcolor': colors['background'],
+                    'font': {
+                        'color': colors['text']
+                    },
                 },
-            },
-        ),
-    #style={'height': 300},
+            ),
     ),
-
-
     html.Div(children='Dash: A web application framework for Python.', style={
         'textAlign': 'center',
         'color': colors['text']
     })
-
 ])
+
 pre_style = {
     'whiteSpace': 'pre-wrap',
     'wordBreak': 'break-all',
     'whiteSpace': 'normal'
 }
-
 
 def parse_contents(contents, filename, date):
     content_type, content_string = contents.split(',')
@@ -138,18 +121,17 @@ def parse_contents(contents, filename, date):
         return html.Div([
             'There was an error processing this file.'
         ])
-
     return html.Div([
-        html.H5(filename),
-        html.H6(datetime.datetime.fromtimestamp(date)),
         dash_table.DataTable(
             data=df.to_dict('records'),
             columns=[{'name': i, 'id': i} for i in df.columns],
+            #editable=True,
             style_cell={
-                    'textAlign': 'left',
-                    'border': '1px solid grey'
+                'textAlign': 'left',
+                'border': '1px solid grey',
             },
-            style_header={'border': '1px solid black'},
+            style_header={
+                'border': '1px solid black'},
             style_data={
                 'whiteSpace': 'normal',
                 'height': 'auto',
@@ -157,12 +139,42 @@ def parse_contents(contents, filename, date):
             css=[
                 {
                     'selector': 'table',
-                    'rule': 'width: 50%;'
+                    'rule': 'auto'
                 }
             ],
+            style_table={
+                'maxHeight': '300px',
+                'width': '50%',
+                'overflowY': 'scroll',
+                'border': 'thin lightgrey solid'
+            },
             ),
+        dcc.Graph(
+            figure=dict(
+                data=[
+                dict(
+                    x=df['x'],
+                    y=df['y'],
+                    name='Rest of world',
+                    mode=  'markers',
+                    marker=dict(
+                        color='rgb(55, 83, 109)',
+                    line= {'width': 0.5, 'color': 'white'}
+                    ),
+                )
+            ],
+                layout={
+                    'plot_bgcolor': colors['background'],
+                    'paper_bgcolor': colors['background'],
+                    'font': {
+                        'color': colors['text']
+                    },
+                },
+            ),
+        ),
+        #html.H5(filename),
+        #html.H6(datetime.datetime.fromtimestamp(date))
     ])
-
 
 @app.callback(Output('output-data-upload', 'children'),
               [Input('upload-data', 'contents')],
@@ -174,8 +186,6 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
             parse_contents(c, n, d) for c, n, d in
             zip(list_of_contents, list_of_names, list_of_dates)]
         return children
-
-
 
 if __name__ == '__main__':
     app.run_server(debug=True)
