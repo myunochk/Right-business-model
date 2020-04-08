@@ -159,7 +159,8 @@ def parse_contents(contents, filename, date):
                     mode=  'markers',
                     marker=dict(
                         color='rgb(55, 83, 109)',
-                    line= {'width': 0.5, 'color': 'white'}
+                        line= {'width': 0.5, 'color': 'white'},
+                        size=df['size'],
                     ),
                 )
             ],
