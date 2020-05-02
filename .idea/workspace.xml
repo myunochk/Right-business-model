@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6fb04d07-1f1b-4b67-8e73-2c408fe54b4d" name="Default Changelist" comment="Automatic initialization of the diagram from csv.&#10;Chenge style.">
+    <list default="true" id="6fb04d07-1f1b-4b67-8e73-2c408fe54b4d" name="Default Changelist" comment="Add function for find Pareto optimal set&#10;Bubble size equals last column (abs)&#10;Add new csv for check">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bWLwgP.css" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -21,6 +20,7 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="MIXED" />
     <option name="ROOT_SYNC" value="DONT_SYNC" />
     <option name="UPDATE_TYPE" value="MERGE" />
   </component>
@@ -89,7 +89,28 @@
       <option name="project" value="LOCAL" />
       <updated>1586331527053</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="After adding a .csv or .xls file, its graph appears.&#10;Deleted global css.&#10;Chenge style. Code format.">
+      <created>1586337495231</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1586337495231</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Add one more csv for checks">
+      <created>1586337606147</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1586337606147</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Add size for new graph from upload.&#10;Update &quot;2.csv&quot; with size.">
+      <created>1586338681381</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1586338681381</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -107,6 +128,9 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Automatic initialization of the diagram from csv.&#10;Chenge style." />
-    <option name="LAST_COMMIT_MESSAGE" value="Automatic initialization of the diagram from csv.&#10;Chenge style." />
+    <MESSAGE value="After adding a .csv or .xls file, its graph appears.&#10;Deleted global css.&#10;Chenge style. Code format." />
+    <MESSAGE value="Add one more csv for checks" />
+    <MESSAGE value="Add size for new graph from upload.&#10;Update &quot;2.csv&quot; with size." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add size for new graph from upload.&#10;Update &quot;2.csv&quot; with size." />
   </component>
 </project>
