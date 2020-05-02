@@ -2,7 +2,6 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-import dash_table_experiments as dt
 from dash.dependencies import Input, Output, State
 import pandas as pd
 import csv
@@ -41,7 +40,7 @@ with open("1.csv", 'r') as f:
     headers = next(reader)
     data = np.array(list(reader)).astype(float)
 
-app.layout = html.Div(children=[
+app.layout = html.Div(children=(
     dcc.Upload(
         id='upload-data',
         children=html.Div([
@@ -74,30 +73,30 @@ app.layout = html.Div(children=[
         figure=dict(
             data=[
                 dict(
-                    x=data[:,0],
-                    y=data[:,1],
+                    x=data[:, 0],
+                    y=data[:, 1],
                     name='Rest of world',
-                    mode=  'markers',
+                    mode='markers',
                     marker=dict(
                         color='rgb(55, 83, 109)',
-                    line= {'width': 0.5, 'color': 'white'}
+                        line={'width': 0.5, 'color': 'white'}
                     ),
                 )
             ],
-            layout= {
-                    'plot_bgcolor': colors['background'],
-                    'paper_bgcolor': colors['background'],
-                    'font': {
-                        'color': colors['text']
-                    },
+            layout={
+                'plot_bgcolor': colors['background'],
+                'paper_bgcolor': colors['background'],
+                'font': {
+                    'color': colors['text']
                 },
-            ),
+            },
+        ),
     ),
     html.Div(children='Dash: A web application framework for Python.', style={
         'textAlign': 'center',
         'color': colors['text']
     })
-])
+))
 
 pre_style = {
     'whiteSpace': 'pre-wrap',
@@ -105,7 +104,7 @@ pre_style = {
     'whiteSpace': 'normal'
 }
 
-def parse_contents(contents, filename, date):
+def parse_contents(contents, filename):
     content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
     try:
@@ -121,7 +120,11 @@ def parse_contents(contents, filename, date):
         return html.Div([
             'There was an error processing this file.'
         ])
+    df,ds = optimalPareto(df)
+    a = dcc.Markdown([str(i) for i in df])
+    a = dcc.Markdown([m+str(i[m]) for i in df.to_dict('records') for m in df])
     return html.Div([
+        dcc.Markdown(children=[str(i['y']) for i in df.to_dict('records')]),
         dash_table.DataTable(
             data=df.to_dict('records'),
             columns=[{'name': i, 'id': i} for i in df.columns],
@@ -156,11 +159,11 @@ def parse_contents(contents, filename, date):
                     x=df['x'],
                     y=df['y'],
                     name='Rest of world',
-                    mode=  'markers',
+                    mode= 'markers',
                     marker=dict(
                         color='rgb(55, 83, 109)',
                         line= {'width': 0.5, 'color': 'white'},
-                        size=df['size'],
+                        size=abs(df[list(df)[-1]]),
                     ),
                 )
             ],
@@ -173,20 +176,36 @@ def parse_contents(contents, filename, date):
                 },
             ),
         ),
-        #html.H5(filename),
-        #html.H6(datetime.datetime.fromtimestamp(date))
     ])
 
 @app.callback(Output('output-data-upload', 'children'),
               [Input('upload-data', 'contents')],
-              [State('upload-data', 'filename'),
-               State('upload-data', 'last_modified')])
-def update_output(list_of_contents, list_of_names, list_of_dates):
+              [State('upload-data', 'filename')])
+def update_output(list_of_contents, list_of_names):
     if list_of_contents is not None:
         children = [
-            parse_contents(c, n, d) for c, n, d in
-            zip(list_of_contents, list_of_names, list_of_dates)]
+            parse_contents(c, n) for c, n in
+            zip(list_of_contents, list_of_names)]
         return children
+
+def optimalPareto(df):
+    ds = df.to_numpy()
+    #ds[np.lexsort(np.fliplr(ds).T)]
+    Pareto = ds[:]
+    print(Pareto)
+    c = [True]*len(ds)
+    for a in ds:
+        for b in ds:
+            ziplist = list(zip(a, b, c))
+            if (all(x == y for x, y, c in ziplist)):
+                continue
+            if (all((x >= y and c == True) or
+                    (x <= y and c == False)
+                    for x, y, c in ziplist)):
+                #print(a,b,c)
+                Pareto = np.delete(Pareto,np.where(np.all(Pareto==b,axis=1)),axis=0)
+    print(Pareto)
+    return df,df
 
 if __name__ == '__main__':
     app.run_server(debug=True)
