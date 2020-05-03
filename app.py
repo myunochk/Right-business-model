@@ -61,6 +61,7 @@ app.layout = html.Div(children=(
         multiple=True
     ),
     html.Div(id='output-data-upload'),
+    html.Div(id='output-data-pareto'),
     html.H1(
         children='Hello Dash',
         style={
@@ -103,7 +104,8 @@ pre_style = {
     'wordBreak': 'break-all',
     'whiteSpace': 'normal'
 }
-
+Pareto = []
+paretoListDiv = []
 def parse_contents(contents, filename):
     content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
@@ -120,11 +122,17 @@ def parse_contents(contents, filename):
         return html.Div([
             'There was an error processing this file.'
         ])
-    df,ds = optimalPareto(df)
-    a = dcc.Markdown([str(i) for i in df])
-    a = dcc.Markdown([m+str(i[m]) for i in df.to_dict('records') for m in df])
+    Pareto.clear()
+    paretoListDiv.clear()
+    Pareto.append(optimalPareto(df.to_numpy())),
+    OutPareto = printPareto(Pareto)
+    #print(type(Pareto1))
+    #a = dcc.Markdown([str(i[m]) for i in Pareto1.to_dict('records') for m in Pareto1])
+    #a = dcc.Markdown([m+str(i[m]) for i in df.to_dict('records') for m in df])
     return html.Div([
-        dcc.Markdown(children=[str(i['y']) for i in df.to_dict('records')]),
+        OutPareto,
+        #dcc.Markdown(children=[str(i['y']) for i in Pareto1.to_dict('records')]),
+        #dcc.Markdown(children=[str(i['y']) for i in df.to_dict('records')]),
         dash_table.DataTable(
             data=df.to_dict('records'),
             columns=[{'name': i, 'id': i} for i in df.columns],
@@ -163,7 +171,7 @@ def parse_contents(contents, filename):
                     marker=dict(
                         color='rgb(55, 83, 109)',
                         line= {'width': 0.5, 'color': 'white'},
-                        size=abs(df[list(df)[-1]]),
+                        size=abs(df[list(df)[-1]])/2,
                     ),
                 )
             ],
@@ -188,24 +196,49 @@ def update_output(list_of_contents, list_of_names):
             zip(list_of_contents, list_of_names)]
         return children
 
+
 def optimalPareto(df):
-    ds = df.to_numpy()
-    #ds[np.lexsort(np.fliplr(ds).T)]
-    Pareto = ds[:]
-    print(Pareto)
-    c = [True]*len(ds)
-    for a in ds:
-        for b in ds:
+    #dd = df.to_numpy()
+    #dd[np.lexsort(np.fliplr(dd).T)]
+    pareto = df[:]
+    c = [False]*len(df)
+    #maybe rewite with [x >= y for i,x in enumerate(a) for j,y in enumerate(a) if i != j]
+    for a in df:
+        for b in df:
             ziplist = list(zip(a, b, c))
-            if (all(x == y for x, y, c in ziplist)):
+            if (all(np.equal(x, y) for x, y, c in ziplist)):
                 continue
-            if (all((x >= y and c == True) or
-                    (x <= y and c == False)
+            if (all((np.greater_equal(x, y) and c) or
+                    (np.less_equal(x ,y) and not c)
                     for x, y, c in ziplist)):
                 #print(a,b,c)
-                Pareto = np.delete(Pareto,np.where(np.all(Pareto==b,axis=1)),axis=0)
-    print(Pareto)
-    return df,df
+                pareto = np.delete(pareto,np.where(np.all(pareto==b,axis=1)),axis=0)
+    #print(f"Pareto: {pareto}")
+    # Very slow
+    # Difference between  df and pareto (df-pareto)
+    ds = np.array(list((set(map(tuple, df)).difference(set(map(tuple, pareto))))))
+    if len(ds):
+        Pareto.append(optimalPareto(ds))
+    return pareto
+    #return printPareto(pareto,index)
+
+def printPareto(pareto):
+    pareto.reverse()
+    for index in range(len(pareto)):
+        paretoListDiv.append(
+            html.Div([
+                str(f"Pareto {index+1}:")
+            ]))
+        #print(f"Pareto{index}: {pareto}")
+        for i in range(len(pareto[index])):
+            paretoListDiv.append(
+                html.Div([
+                    f"{pareto[index][i]}"
+                ])
+            )
+            print(f"{pareto[index][i]}")
+        print()
+    return html.Div(paretoListDiv)
 
 if __name__ == '__main__':
     app.run_server(debug=True)
