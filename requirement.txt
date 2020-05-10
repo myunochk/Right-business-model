@@ -3,7 +3,7 @@ pip install dash
 pip install dash-html-components
 pip install dash-core-components
 pip install dash-table
-#dash-1.10.0
+#dash-1.11.0
 #Flask-1.1.2-py2
 #Flask-Compress-1.4.0
 #plotly-4.6.0-py2
