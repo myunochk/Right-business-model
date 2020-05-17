@@ -18,7 +18,7 @@ from datetime import datetime
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 server = flask.Flask(__name__)
 server.secret_key = os.environ.get('secret_key', str(randint(0, 1000000)))
-app = dash.Dash(__name__, server=server)
+app = dash.Dash(__name__, server=server,external_stylesheets=external_stylesheets)
 
 
 colors = {
