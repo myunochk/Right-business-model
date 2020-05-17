@@ -9,7 +9,7 @@ import numpy as np
 import dash_table
 import io,os
 import base64
-from random import randint
+from random import randint,seed
 from colored import fg
 import json
 import flask
@@ -26,7 +26,7 @@ colors = {
     'text': '#111'
 }
 def generate_graph(dataframe, MN = 0):
-    random.seed(datetime.now().time())
+    seed(datetime.now().time())
     Pareto = optimalPareto(dataframe.to_numpy(), MN)
     dates = []
     for i in range(len(Pareto)):
@@ -45,7 +45,7 @@ def generate_graph(dataframe, MN = 0):
                 name=f'Pareto {i}',
                 mode='markers',
                 marker=dict(
-                    color=fg(random.randint(1,255)),
+                    color=fg(randint(1,255)),
                     line={'width': 0.5, 'color': 'white'},
                     size=Size,
                 ),
