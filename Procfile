@@ -1,1 +1,1 @@
-web: python right-business-model.py
+web: gunicorn right-business-model:server --timeout 300
