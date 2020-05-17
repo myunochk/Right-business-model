@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6fb04d07-1f1b-4b67-8e73-2c408fe54b4d" name="Default Changelist" comment="Add function for find Pareto optimal set&#10;Bubble size equals last column (abs)&#10;Add new csv for check">
+    <list default="true" id="6fb04d07-1f1b-4b67-8e73-2c408fe54b4d" name="Default Changelist" comment="Trying to deploy to heroku x5">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -19,6 +18,11 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="99e3da04c409a5b357139d2baf48e35ec9ea5b39" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="RESET_MODE" value="MIXED" />
     <option name="ROOT_SYNC" value="DONT_SYNC" />
@@ -27,9 +31,9 @@
   <component name="ProjectId" id="1a766s08Wc60nFxtZxvtTNDou9z" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="C:/Program Files/Git/cmd/git.exe" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/right-business-model.py" />
     <property name="restartRequiresConfirmation" value="false" />
-    <property name="settings.editor.selected.configurable" value="vcs.Git" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -49,7 +53,7 @@
     </option>
   </component>
   <component name="RunManager">
-    <configuration name="app" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+    <configuration name="right-business-model" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="diploma" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -61,7 +65,7 @@
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/app.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/right-business-model.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -110,7 +114,91 @@
       <option name="project" value="LOCAL" />
       <updated>1586338681381</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Add new csv for check **">
+      <created>1588422495508</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1588422495508</updated>
+    </task>
+    <task id="LOCAL-00006" summary="1 n-th (all) order Pareto-optimal set&#10;2 Pareto-optimal output(div) without callback.">
+      <created>1588518885029</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1588518885030</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Library version updated.&#10;OptimalParreto function updated (does not use global variables).&#10;Each Pareto Optimal Set in html.Details (tag specifies additional details that the user can view or hide on demand)&#10;Updated table generation.&#10;Moved to separate element rendering functions.&#10;Added support for files with the resolution 'txt' or 'tsv' (not tested).&#10;Temporarily added dropdown. Tested Pattern-Matching Callbacks (for dash == 1.11).&#10;ToggleSwitch temporarily added for testing.">
+      <created>1589102521546</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1589102521546</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Library version updated.&#10;OptimalParreto function updated (does not use global variables).&#10;Each Pareto Optimal Set in html.Details (tag specifies additional details that the user can view or hide on demand)&#10;Updated table generation.&#10;Moved to separate element rendering functions.&#10;Added support for files with the resolution 'txt' or 'tsv' (not tested).&#10;Temporarily added dropdown. Tested Pattern-Matching Callbacks (for dash == 1.11).&#10;ToggleSwitch temporarily added for testing.">
+      <created>1589705107418</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1589705107418</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Library version updated.&#10;Refactoring.&#10;The graph is (?)divided(?) into sets of Pareto.&#10;Better color.&#10;Deleted init graph">
+      <created>1589732129510</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1589732129510</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Trying to deploy to heroku">
+      <created>1589734481036</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1589734481036</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Trying to deploy to heroku x2">
+      <created>1589735144839</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1589735144839</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Trying to deploy to heroku x3">
+      <created>1589736132757</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1589736132757</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Trying to deploy to heroku x3">
+      <created>1589736214465</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1589736214465</updated>
+    </task>
+    <task id="LOCAL-00014" summary="Trying to deploy to heroku x4">
+      <created>1589736733639</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1589736733639</updated>
+    </task>
+    <task id="LOCAL-00015" summary="Trying to deploy to heroku x4">
+      <created>1589737092686</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1589737092686</updated>
+    </task>
+    <task id="LOCAL-00016" summary="Trying to deploy to heroku x5">
+      <created>1589737600304</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1589737600304</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -119,6 +207,12 @@
         <entry key="MAIN">
           <value>
             <State>
+              <option name="COLUMN_WIDTH">
+                <map>
+                  <entry key="2" value="115" />
+                  <entry key="3" value="144" />
+                </map>
+              </option>
               <option name="COLUMN_ORDER" />
             </State>
           </value>
@@ -131,6 +225,15 @@
     <MESSAGE value="After adding a .csv or .xls file, its graph appears.&#10;Deleted global css.&#10;Chenge style. Code format." />
     <MESSAGE value="Add one more csv for checks" />
     <MESSAGE value="Add size for new graph from upload.&#10;Update &quot;2.csv&quot; with size." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add size for new graph from upload.&#10;Update &quot;2.csv&quot; with size." />
+    <MESSAGE value="Add new csv for check **" />
+    <MESSAGE value="1 n-th (all) order Pareto-optimal set&#10;2 Pareto-optimal output(div) without callback." />
+    <MESSAGE value="Library version updated.&#10;OptimalParreto function updated (does not use global variables).&#10;Each Pareto Optimal Set in html.Details (tag specifies additional details that the user can view or hide on demand)&#10;Updated table generation.&#10;Moved to separate element rendering functions.&#10;Added support for files with the resolution 'txt' or 'tsv' (not tested).&#10;Temporarily added dropdown. Tested Pattern-Matching Callbacks (for dash == 1.11).&#10;ToggleSwitch temporarily added for testing." />
+    <MESSAGE value="Library version updated.&#10;Refactoring.&#10;The graph is (?)divided(?) into sets of Pareto.&#10;Better color.&#10;Deleted init graph" />
+    <MESSAGE value="Trying to deploy to heroku" />
+    <MESSAGE value="Trying to deploy to heroku x2" />
+    <MESSAGE value="Trying to deploy to heroku x3" />
+    <MESSAGE value="Trying to deploy to heroku x4" />
+    <MESSAGE value="Trying to deploy to heroku x5" />
+    <option name="LAST_COMMIT_MESSAGE" value="Trying to deploy to heroku x5" />
   </component>
 </project>
