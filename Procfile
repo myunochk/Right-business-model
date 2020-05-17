@@ -1,1 +1,1 @@
-web gunicorn app:app
+web: gunicorn right-business-model:app
