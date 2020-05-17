@@ -35,7 +35,7 @@ def generate_graph(dataframe, MN = 0):
         for j in range(len(P)):
             X.append(P[j][0])
             Y.append(P[j][1])
-            Size.append(abs(P[j][2])/2) if len(P[j])>2 else Size.append(20)
+            Size.append(abs(P[j][2])/2) if len(P[j])>2 and abs(P[j][2]) > 20 else Size.append(20)
         dates.append(
             dict(
                 # TODO: Check for the existence of 'x' 'y' 'z' size.
