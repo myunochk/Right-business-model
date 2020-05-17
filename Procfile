@@ -1,1 +1,1 @@
-web: gunicorn right-business-model:app
+web: python right-business-model.py
