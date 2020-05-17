@@ -10,6 +10,7 @@ import dash_table
 import io
 import base64
 import random
+from colored import fg
 import json
 from datetime import datetime
 
@@ -21,41 +22,44 @@ colors = {
     'background': '#fff',
     'text': '#111'
 }
-def generate_graph(dataframe):
-    colorss=[]
+def generate_graph(dataframe, MN = 0):
     random.seed(datetime.now().time())
-    for i in range(len(dataframe)):
-        colorss.append('rgb('
-                       f'{(dataframe["x"][i] * dataframe["y"][i])%random.randint(0,255)},'
-                       f'{(dataframe["x"][i] * dataframe["y"][i])%random.randint(0,255)},'
-                       f'{(dataframe["x"][i] * dataframe["y"][i])%random.randint(0,255)})')
-    return dcc.Graph(
-            figure=dict(
-                data=[
-                dict(
-                    #TODO: Check for the existence of 'x' 'y' 'z' size.
-                    #If they are not, then the first column will be x, the second y, etc.
-                    x=dataframe['x'],
-                    y=dataframe['y'],
-                    name='Rest of world',
-                    mode= 'markers',
-                    marker=dict(
-                        #color={'rgb(55, 83, 109)' if dataframe['x'][i]> 50 else 'rgb(15, 13, 19)' for i in range(len(dataframe['x']))},
-                        color =colorss,
-                        line= {'width': 0.5, 'color': 'white'},
-                        size=abs(dataframe[list(dataframe)[-1]])/2,
-                    ),
+    Pareto = optimalPareto(dataframe.to_numpy(), MN)
+    dates = []
+    for i in range(len(Pareto)):
+        P = Pareto[i]
+        X, Y, Size = [], [], []
+        for j in range(len(P)):
+            X.append(P[j][0])
+            Y.append(P[j][1])
+            Size.append(abs(P[j][2])/2) if len(P[j])>2 else Size.append(20)
+        dates.append(
+            dict(
+                # TODO: Check for the existence of 'x' 'y' 'z' size.
+                #If they are not, then the first column will be x, the second y, etc.
+                x=X,
+                y=Y,
+                name=f'Pareto {i}',
+                mode='markers',
+                marker=dict(
+                    color=fg(random.randint(1,255)),
+                    line={'width': 0.5, 'color': 'white'},
+                    size=Size,
                 ),
-            ],
-                layout={
-                    'plot_bgcolor': colors['background'],
-                    'paper_bgcolor': colors['background'],
-                    'font': {
-                        'color': colors['text']
-                    },
-                },
-            ),
+            )
         )
+    return dcc.Graph(
+        figure=dict(
+            data = dates,
+            layout={
+                'plot_bgcolor': colors['background'],
+                'paper_bgcolor': colors['background'],
+                'font': {
+                    'color': colors['text']
+                },
+            },
+        )
+    )
 
 def generate_table(dataframe):
     return dash_table.DataTable(
@@ -86,7 +90,7 @@ def generate_table(dataframe):
             },
             )
 
-def parse_dataa(contents, filename):
+def parse_data(contents, filename):
     content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
     try:
@@ -137,13 +141,6 @@ app.layout = html.Div(children=(
         # Allow multiple files to be uploaded
         multiple=True
     ),
-    daq.ToggleSwitch(
-        id='ToggleSwitch',
-        label=['min', 'max'],
-        style={'width': '250px', 'margin': 'auto'},
-        value=False
-    ),
-    html.Div(id='asdddd', children="min"),
     html.Div(id='output-data-TS'),
     dcc.Dropdown(
         id='model-selector',
@@ -151,9 +148,7 @@ app.layout = html.Div(children=(
     ),
     html.Div(id='output-data-pareto'),
     html.Div(id='output-data-table'),
-    html.Div(id='output-data-upload'),
     html.Div(id='output-data-graph'),
-    html.Div(id='aaasss'),
     html.H1(
         children='Hello Dash',
         style={
@@ -161,8 +156,7 @@ app.layout = html.Div(children=(
             'color': colors['text']
         }
     ),
-    generate_graph(data),
-
+    #generate_graph(data),
     html.Div(children='Dash: A web application framework for Python.', style={
         'textAlign': 'center',
         'color': colors['text']
@@ -174,48 +168,10 @@ pre_style = {
     'wordBreak': 'break-all',
     'whiteSpace': 'normal'
 }
-#TODO: Gently remove
-def parse_contents(contents, filename):
-    content_type, content_string = contents.split(',')
-    decoded = base64.b64decode(content_string)
-    try:
-        if 'csv' in filename:
-            # Assume that the user uploaded a CSV file
-            df = pd.read_csv(
-                io.StringIO(decoded.decode('utf-8')))
-        elif 'xls' in filename:
-            # Assume that the user uploaded an excel file
-            df = pd.read_excel(io.BytesIO(decoded))
-        elif 'txt' or 'tsv' in filename:
-            # Assume that the user upl, delimiter = r'\s+'oaded an excel file
-            df = pd.read_csv(
-                io.StringIO(decoded.decode('utf-8')), delimiter=r'\s+')
-    except Exception as e:
-        print(e)
-        return html.Div([
-            'There was an error processing this file.'
-        ])
-    #OutPareto = printPareto(Pareto)
-    return html.Div([
-        #generate_graph(df),
-    ])
-
-#
 @app.callback(Output('model-selector', 'options'),
               [Input({'type': 'Pareto', 'index': ALL}, 'children')])
 def chengeoption(a):
     return [{'label': str(a[i][0]), 'value': str(a[i][0])} for i in range(len(a))]
-
-#TODO: Gently remove
-@app.callback(Output('output-data-upload', 'children'),
-              [Input('upload-data', 'contents')],
-              [State('upload-data', 'filename')])
-def update_output(list_of_contents, list_of_names):
-    if list_of_contents is not None:
-        children = [
-            parse_dataa(c, n) for c, n in
-            zip(list_of_contents, list_of_names)]
-        #return children
 
 def optimalPareto(df, MN = 0):
     Pareto = []
@@ -245,7 +201,7 @@ def optimalPareto(df, MN = 0):
     return Pareto
     #return printPareto(pareto,index)
 
-#Out paretoList with data from uploaded files
+#Out paretoList with data from uploaded file(s)
 @app.callback(Output('output-data-pareto', 'children'),
             [Input('upload-data', 'contents'),
              Input('upload-data', 'filename'),
@@ -255,7 +211,7 @@ def printPareto(contents, filename, MN):
     if contents:
         contents = contents[0]
         filename = filename[0]
-        pareto = parse_dataa(contents, filename)
+        pareto = parse_data(contents, filename)
         #Pareto.reverse()
         Pareto = optimalPareto(pareto.to_numpy(), MN)
         for index in range(len(Pareto)):
@@ -278,7 +234,7 @@ def printPareto(contents, filename, MN):
     #createCallback(len(paretoListDiv))
     return html.Div(paretoListDiv)
 
-#Out table with data from uploaded files
+#Out table with data from uploaded file(s)
 @app.callback(Output('output-data-table', 'children'),
             [Input('upload-data', 'contents'),
              Input('upload-data', 'filename')])
@@ -286,36 +242,33 @@ def update_table(contents, filename):
     table = []
     if contents:
         children = [
-            parse_dataa(c, n) for c, n in
+            parse_data(c, n) for c, n in
             zip(contents, filename)]
         for i in range(len(children)):
             table.append(generate_table(children[i]))
     return table
 
-#Out graph with data from uploaded files
+#Out graph with data from uploaded file(s)
 @app.callback(Output('output-data-graph', 'children'),
             [Input('upload-data', 'contents'),
-             Input('upload-data', 'filename')])
-def update_graph(contents, filename):
+             Input('upload-data', 'filename'),
+            Input({'type': 'TS', 'index': ALL}, 'value')])
+def update_graph(contents, filename, MN):
     graph = []
     if contents:
         children = [
-            parse_dataa(c, n) for c, n in
+            parse_data(c, n) for c, n in
             zip(contents, filename)]
         for i in range(len(children)):
-            graph.append(generate_graph(children[i]))
+            graph.append(generate_graph(children[i], MN))
     return graph
 
 @app.callback(Output('output-data-TS', 'children'),
             [Input('output-data-table', 'children')])
-def TS(a):
+def TS(dataframe):
     TSDiv = []
-    if a:
-        sizecolumns = len(a[0]['props']['columns'])
-
-        print("Len: ", a[0]['props']['columns'])
-        print("Len: ", sizecolumns)
-        print("Len2: ", a[0]['props']['columns'][0])
+    if dataframe:
+        sizecolumns = len(dataframe[0]['props']['columns'])
         for i in range(sizecolumns):
             TSDiv.append(
                 daq.ToggleSwitch(
@@ -332,23 +285,6 @@ def TS(a):
                 )
             )
     return TSDiv
-
-@app.callback(Output('aaasss', 'children'),
-            [Input({'type': 'TS', 'index': ALL}, 'value')])
-def valueTS(value):
-    print()
-    for i in range(len(value)):
-        print(value[i])
-    print()
-    return html.Div()
-
-@app.callback(Output('asdddd', 'children'),
-            [Input('ToggleSwitch', 'value')])
-def ass(v):
-    if not v:
-        return html.Div("min")
-
-    return html.Div("max")
 
 if __name__ == '__main__':
     app.run_server(debug=True)
