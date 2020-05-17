@@ -117,7 +117,7 @@ def parse_data(contents, filename):
 #app.server.config.suppress_callback_exceptions = True
 #app.config['suppress_callback_exceptions'] = True
 
-data = pd.read_csv("1.csv")
+#data = pd.read_csv("1.csv")
 
 
 
