@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+#TODO: add more logs, add more exceptions
+#TODO: add RangeSlider close to ToggleSwitch
+#TODO: If first col have naming then Rebuild Full Logic
+#TODO: Consider adding tabs
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -7,7 +11,8 @@ from dash.dependencies import Input, Output, State, MATCH, ALL
 import pandas as pd
 import numpy as np
 import dash_table
-import io,os
+import io
+import os
 import base64
 from random import randint,seed
 from colored import fg
@@ -35,7 +40,7 @@ def generate_graph(dataframe, MN = 0):
         for j in range(len(P)):
             X.append(P[j][0])
             Y.append(P[j][1])
-            Size.append(abs(P[j][2])/2) if len(P[j])>2 and abs(P[j][2]) > 20 else Size.append(20)
+            Size.append(abs(P[j][2])+10 if len(P[j])>2 else 20)
         dates.append(
             dict(
                 # TODO: Check for the existence of 'x' 'y' 'z' size.
@@ -105,7 +110,7 @@ def parse_data(contents, filename):
             # Assume that the user uploaded an excel file
             df = pd.read_excel(io.BytesIO(decoded))
         elif 'txt' or 'tsv' in filename:
-            # Assume that the user upl, delimiter = r'\s+'oaded an excel file
+            # Assume that the user upl, delimiter = r'\s+' added an excel file
             df = pd.read_csv(
                 io.StringIO(decoded.decode('utf-8')), delimiter = r'\s+')
     except Exception as e:
