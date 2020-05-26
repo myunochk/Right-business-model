@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 #TODO: add more logs, add more exceptions
-#TODO: add RangeSlider close to ToggleSwitch
 #TODO: If first col have naming then Rebuild Full Logic
 #TODO: Consider adding tabs
 import dash
@@ -30,9 +29,9 @@ colors = {
     'background': '#fff',
     'text': '#111'
 }
-def generate_graph(dataframe, MN = 0):
+def generate_graph(dataframe, TS = 0, RS = 0):
     seed(datetime.now().time())
-    Pareto = optimalPareto(dataframe.to_numpy(), MN)
+    Pareto = optimalPareto(dataframe.to_numpy(), TS, RS)
     dates = []
     for i in range(len(Pareto)):
         P = Pareto[i]
@@ -181,10 +180,10 @@ pre_style = {
 def chengeoption(a):
     return [{'label': str(a[i][0]), 'value': str(a[i][0])} for i in range(len(a))]
 
-def optimalPareto(df, MN = 0):
+def optimalPareto(df, TS = 0, RS = 0):
     Pareto = []
-    if MN == 0:
-        MN=[False] * len(df)
+    if TS == 0:
+        TS=[False] * len(df)
     while len(df)>0:
         #dd = df.to_numpy()
         #dd[np.lexsort(np.fliplr(dd).T)]
@@ -193,19 +192,29 @@ def optimalPareto(df, MN = 0):
         #maybe rewite with [x >= y for i,x in enumerate(a) for j,y in enumerate(a) if i != j]
         for a in df:
             for b in df:
-                ziplist = list(zip(a, b, MN))
-                if (all(np.equal(x, y) for x, y, c in ziplist)):
+                ziplist = list(zip(a, b, TS, RS))
+                if (all(np.equal(x, y) for x, y, TS, RS in ziplist)):
                     continue
-                if (all((np.greater_equal(x, y) and c) or
-                        (np.less_equal(x ,y) and not c)
-                        for x, y, c in ziplist)):
+                for indexcolumn in range(np.size(a)):
+                    #bb=list(b)
+                    #if a[indexcolumn] < RS[indexcolumn] or b[indexcolumn]:
+                    #print(b.item(indexcolumn) >= RS[indexcolumn][0] and b.item(indexcolumn) <= RS[indexcolumn][1])
+                    if not (b.item(indexcolumn) >= RS[indexcolumn][0] and b.item(indexcolumn) <= RS[indexcolumn][1]):
+                        df = np.delete(df,np.where(np.all(df==b,axis=1)),axis=0)
+                        pareto = np.delete(pareto, np.where(np.all(pareto==b, axis=1)), axis=0)
+                        #continue
+                #    df = np.delete(df,np.where(np.all(df==b,axis=1)),axis=0)
+                if (all(((np.greater_equal(x, y) and TS) or
+                        (np.less_equal(x ,y) and not TS))
+                        for x, y, TS, RS in ziplist)):
                     #print(a,b,c)
                     pareto = np.delete(pareto,np.where(np.all(pareto==b,axis=1)),axis=0)
         #print(f"Pareto: {pareto}")
         # Very slow
         # Difference between  df and pareto (df-pareto)
         df = np.array(list((set(map(tuple, df)).difference(set(map(tuple, pareto))))))
-        Pareto.append(pareto)
+        if len(pareto):
+            Pareto.append(pareto)
     return Pareto
     #return printPareto(pareto,index)
 
@@ -213,15 +222,16 @@ def optimalPareto(df, MN = 0):
 @app.callback(Output('output-data-pareto', 'children'),
             [Input('upload-data', 'contents'),
              Input('upload-data', 'filename'),
-            Input({'type': 'TS', 'index': ALL}, 'value')])
-def printPareto(contents, filename, MN):
+             Input({'type': 'TS', 'index': ALL}, 'value'),
+             Input({'type': 'RS', 'index': ALL}, 'value')])
+def printPareto(contents, filename, TS, RS):
     paretoListDiv = []
     if contents:
         contents = contents[0]
         filename = filename[0]
         pareto = parse_data(contents, filename)
         #Pareto.reverse()
-        Pareto = optimalPareto(pareto.to_numpy(), MN)
+        Pareto = optimalPareto(pareto.to_numpy(), TS, RS)
         for index in range(len(Pareto)):
             paretoListDiv.append(
                 html.Details(
@@ -260,15 +270,16 @@ def update_table(contents, filename):
 @app.callback(Output('output-data-graph', 'children'),
             [Input('upload-data', 'contents'),
              Input('upload-data', 'filename'),
-            Input({'type': 'TS', 'index': ALL}, 'value')])
-def update_graph(contents, filename, MN):
+             Input({'type': 'TS', 'index': ALL}, 'value'),
+             Input({'type': 'RS', 'index': ALL}, 'value')])
+def update_graph(contents, filename, TS, RS):
     graph = []
     if contents:
         children = [
             parse_data(c, n) for c, n in
             zip(contents, filename)]
         for i in range(len(children)):
-            graph.append(generate_graph(children[i], MN))
+            graph.append(generate_graph(children[i], TS, RS))
     return graph
 
 @app.callback(Output('output-data-TS', 'children'),
@@ -278,7 +289,14 @@ def TS(dataframe):
     if dataframe:
         sizecolumns = len(dataframe[0]['props']['columns'])
         for i in range(sizecolumns):
+            minvalue =  dataframe[0]['props']['data'][0][str(dataframe[0]['props']['columns'][i]['name'])]
+            maxvalue = minvalue
+            for j in range(len(dataframe[0]['props']['data'])):
+                value = dataframe[0]['props']['data'][j][str(dataframe[0]['props']['columns'][i]['name'])]
+                minvalue = min(minvalue,value)
+                maxvalue = max(maxvalue,value)
             TSDiv.append(
+                html.Div([
                 daq.ToggleSwitch(
                     id={'type': 'TS', 'index': i},
                     label=['min', 'max'],
@@ -290,6 +308,19 @@ def TS(dataframe):
                         'left' : '5%',
                         },
                     value=False
+                ),
+                dcc.RangeSlider(
+                    id={'type': 'RS', 'index': i},
+                    min=minvalue,
+                    max=maxvalue,
+                    step=0.5,
+                    value=[minvalue, maxvalue],
+                    marks={
+                        minvalue: str(minvalue),
+                        maxvalue: str(maxvalue)
+                    }
+                ),
+                ]
                 )
             )
     return TSDiv
