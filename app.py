@@ -29,7 +29,7 @@ colors = {
     'background': '#fff',
     'text': '#111'
 }
-def generate_graph(dataframe, TS = 0, RS = 0):
+def generate_graph(dataframe, TS = 0, RS = [[0,0],[0,0]]):
     seed(datetime.now().time())
     Pareto = optimalPareto(dataframe.to_numpy(), TS, RS)
     dates = []
@@ -180,36 +180,33 @@ pre_style = {
 def chengeoption(a):
     return [{'label': str(a[i][0]), 'value': str(a[i][0])} for i in range(len(a))]
 
-def optimalPareto(df, TS = 0, RS = 0):
+def optimalPareto(df, TS = 0, RS = [[0,0],[0,0]]):
     Pareto = []
     if TS == 0:
         TS=[False] * len(df)
     while len(df)>0:
-        #dd = df.to_numpy()
-        #dd[np.lexsort(np.fliplr(dd).T)]
         pareto = df[:]
-        #c = [False,True]#[False]*len(df)
         #maybe rewite with [x >= y for i,x in enumerate(a) for j,y in enumerate(a) if i != j]
         for a in df:
+            try:
+                if len(RS)==2 and not (a[0] >= RS[0][0] and a[0] <= RS[0][1] and
+                                       a[1] >= RS[1][0] and a[1] <= RS[1][1]):
+                    df = np.delete(df, np.where(np.all(df == a, axis=1)), axis=0)
+                    if len(pareto) > 0 and a in pareto:
+                        pareto = np.delete(pareto, np.where(np.all(pareto == a, axis=1)), axis=0)
+            except Exception as e:
+                print(e)
             for b in df:
-                ziplist = list(zip(a, b, TS, RS))
-                if (all(np.equal(x, y) for x, y, TS, RS in ziplist)):
-                    continue
-                for indexcolumn in range(np.size(a)):
-                    #bb=list(b)
-                    #if a[indexcolumn] < RS[indexcolumn] or b[indexcolumn]:
-                    #print(b.item(indexcolumn) >= RS[indexcolumn][0] and b.item(indexcolumn) <= RS[indexcolumn][1])
-                    if not (b.item(indexcolumn) >= RS[indexcolumn][0] and b.item(indexcolumn) <= RS[indexcolumn][1]):
-                        df = np.delete(df,np.where(np.all(df==b,axis=1)),axis=0)
-                        pareto = np.delete(pareto, np.where(np.all(pareto==b, axis=1)), axis=0)
-                        #continue
-                #    df = np.delete(df,np.where(np.all(df==b,axis=1)),axis=0)
-                if (all(((np.greater_equal(x, y) and TS) or
-                        (np.less_equal(x ,y) and not TS))
-                        for x, y, TS, RS in ziplist)):
-                    #print(a,b,c)
-                    pareto = np.delete(pareto,np.where(np.all(pareto==b,axis=1)),axis=0)
-        #print(f"Pareto: {pareto}")
+                try:
+                    ziplist = list(zip(a, b, TS, RS))
+                    if (all(np.equal(x, y) for x, y, TS, RS in ziplist)):
+                        continue
+                    if (all(((np.greater_equal(x, y) and TS) or
+                            (np.less_equal(x ,y) and not TS))
+                            for x, y, TS, RS in ziplist)):
+                        pareto = np.delete(pareto,np.where(np.all(pareto==b,axis=1)),axis=0)
+                except Exception as e:
+                    print(e)
         # Very slow
         # Difference between  df and pareto (df-pareto)
         df = np.array(list((set(map(tuple, df)).difference(set(map(tuple, pareto))))))
@@ -247,8 +244,8 @@ def printPareto(contents, filename, TS, RS):
                     open=False,
                     title="Pareto" + str(index + 1),
                 ))
-            print(f"{Pareto[index]}")
-            print()
+            #print(f"{Pareto[index]}")
+            #print()
     #createCallback(len(paretoListDiv))
     return html.Div(paretoListDiv)
 
@@ -289,23 +286,37 @@ def TS(dataframe):
     if dataframe:
         sizecolumns = len(dataframe[0]['props']['columns'])
         for i in range(sizecolumns):
-            minvalue =  dataframe[0]['props']['data'][0][str(dataframe[0]['props']['columns'][i]['name'])]
+            columnname = str(dataframe[0]['props']['columns'][i]['name'])
+            minvalue =  dataframe[0]['props']['data'][0][columnname]
             maxvalue = minvalue
+            step = abs(dataframe[0]['props']['data'][1][columnname] - minvalue)
             for j in range(len(dataframe[0]['props']['data'])):
-                value = dataframe[0]['props']['data'][j][str(dataframe[0]['props']['columns'][i]['name'])]
+                value = dataframe[0]['props']['data'][j][columnname]
                 minvalue = min(minvalue,value)
                 maxvalue = max(maxvalue,value)
+                if j>0:
+                    step = min(step,abs(value-dataframe[0]['props']['data'][j-1][columnname]))
+            marks= [h for h in range(minvalue,maxvalue,max(step,int((maxvalue-minvalue)/20)))]
+            marks.append(maxvalue)
             TSDiv.append(
                 html.Div([
+                    html.Div(children=columnname,
+                             style={
+                                 'position': 'relative',
+                                 'margin-left': '60px',
+                                 'margin-top': '10px'
+                             }
+            ),
                 daq.ToggleSwitch(
                     id={'type': 'TS', 'index': i},
                     label=['min', 'max'],
                     style={
+                        'position': 'relative',
                         'display': 'flex',
-                        'width': '10%',
-                        'margin': '5px',
-                        'margin-left': '30px',
-                        'left' : '5%',
+                        #'width': '10%',
+                        #'margin': '5px',
+                        #'margin-left': '20px',
+                        #'left' : '5%',
                         },
                     value=False
                 ),
@@ -313,12 +324,9 @@ def TS(dataframe):
                     id={'type': 'RS', 'index': i},
                     min=minvalue,
                     max=maxvalue,
-                    step=0.5,
+                    step=step,
                     value=[minvalue, maxvalue],
-                    marks={
-                        minvalue: str(minvalue),
-                        maxvalue: str(maxvalue)
-                    }
+                    marks={str(marks[h]) : {'label' : str(marks[h])} for h in range(len(marks))},
                 ),
                 ]
                 )
