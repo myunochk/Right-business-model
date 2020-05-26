@@ -189,7 +189,7 @@ def optimalPareto(df, TS = 0, RS = [[0,0],[0,0]]):
         #maybe rewite with [x >= y for i,x in enumerate(a) for j,y in enumerate(a) if i != j]
         for a in df:
             try:
-                if len(RS)==2 and not (a[0] >= RS[0][0] and a[0] <= RS[0][1] and
+                if len(RS)>0 and not (a[0] >= RS[0][0] and a[0] <= RS[0][1] and
                                        a[1] >= RS[1][0] and a[1] <= RS[1][1]):
                     df = np.delete(df, np.where(np.all(df == a, axis=1)), axis=0)
                     if len(pareto) > 0 and a in pareto:
