@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 #TODO: add more logs, add more exceptions
 #TODO: If first col have naming then Rebuild Full Logic
-#TODO: must parse_data only one time
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -28,7 +27,7 @@ colors = {
 
 def generate_graph(dataframe, TS = 0, RS = [[0,0],[0,0]]):
     random.seed(datetime.now())
-    Pareto = optimalPareto(dataframe.to_numpy(), TS = TS, RS = RS)
+    Pareto = optimalPareto(pd.DataFrame(dataframe).to_numpy(), TS = TS, RS = RS)
     dates = []
     for i in range(len(Pareto)):
         P = Pareto[i]
@@ -111,13 +110,16 @@ def parse_data(contents, filename):
         print(type(df))
         if not pd.to_numeric(df.iloc[:, 0], errors='coerce').notnull().all():
             df = df.iloc[:, 1:]
+            names = df.iloc[:, 0]
+        else:
+            names = df.iloc[:, 0]
         print()
     except Exception as e:
         print(e)
         return html.Div([
             'There was an error processing this file.'
         ])
-    return df
+    return df, names
 
 #app.scripts.config.serve_locally = True
 #app.config.suppress_callback_exceptions = True
@@ -227,16 +229,15 @@ def optimalPareto(df, TS = 0, RS = [[0,0],[0,0]]):
 
 #Out paretoList with data from uploaded file(s)
 @app.callback(Output('output-data-pareto', 'children'),
-            [Input('upload-data', 'contents'),
-             Input('upload-data', 'filename'),
+            [Input('output-data-table', 'children'),
              Input({'type': 'TS', 'index': ALL}, 'value'),
              Input({'type': 'RS', 'index': ALL}, 'value')])
-def printPareto(contents, filename, TS, RS):
+def printPareto(dataframe, TS, RS):
     paretoListDiv = []
-    if contents:
-        pareto = parse_data(contents, filename)
+    if len(dataframe):
+        dataframe = dataframe[0]['props']['data']
         #Pareto.reverse()
-        Pareto = optimalPareto(pareto.to_numpy(), TS = TS, RS = RS)
+        Pareto = optimalPareto(pd.DataFrame(dataframe).to_numpy(), TS = TS, RS = RS)
         for index in range(len(Pareto)):
             paretoListDiv.append(
                 html.Details(
@@ -264,19 +265,20 @@ def printPareto(contents, filename, TS, RS):
 def update_table(contents, filename):
     table = []
     if contents:
-        table.append(generate_table(parse_data(contents, filename)))
+        tablecontent, names = parse_data(contents, filename)
+        table.append(generate_table(tablecontent))
     return table
 
 #Out graph with data from uploaded file(s)
 @app.callback(Output('output-data-graph', 'children'),
-            [Input('upload-data', 'contents'),
-             Input('upload-data', 'filename'),
+            [Input('output-data-table', 'children'),
              Input({'type': 'TS', 'index': ALL}, 'value'),
              Input({'type': 'RS', 'index': ALL}, 'value')])
-def update_graph(contents, filename, TS, RS):
+def update_graph(dataframe, TS, RS):
     graph = []
-    if contents:
-        graph.append(generate_graph(parse_data(contents, filename), TS = TS, RS = RS))
+    if len(dataframe):
+        dataframe = dataframe[0]['props']['data']
+        graph.append(generate_graph(dataframe, TS = TS, RS = RS))
     return graph
 
 @app.callback(Output('output-data-TS', 'children'),
@@ -296,7 +298,10 @@ def TS(dataframe):
                 maxvalue = max(maxvalue,value)
                 if j:
                     step = min(step,abs(value-dataframe[0]['props']['data'][j-1][columnname]))
-            marks = [h for h in range(minvalue,maxvalue,max(step,1,int(abs(maxvalue-minvalue)/20)))]
+            marks = []
+            if max(step,int(abs(maxvalue-minvalue)/20)):
+                for mark in range(minvalue,maxvalue,max(step,int(abs(maxvalue-minvalue)/20))):
+                    marks.append(mark)
             marks.append(maxvalue)
             TSDiv.append(
                 html.Div([
@@ -306,24 +311,24 @@ def TS(dataframe):
                                  'margin-left': '60px',
                                  'margin-top': '10px'
                              }
-            ),
-                daq.ToggleSwitch(
-                    id={'type': 'TS', 'index': i},
-                    label=['min', 'max'],
-                    style={
-                        'position': 'relative',
-                        'display': 'flex',
-                    },
-                    value=False
-                ),
-                dcc.RangeSlider(
-                    id={'type': 'RS', 'index': i},
-                    min=minvalue,
-                    max=maxvalue,
-                    step=step,
-                    value=[minvalue, maxvalue],
-                    marks={str(marks[h]) : {'label' : str(marks[h])} for h in range(len(marks))},
-                ),
+                             ),
+                    daq.ToggleSwitch(
+                        id={'type': 'TS', 'index': i},
+                        label=['min', 'max'],
+                        style={
+                            'position': 'relative',
+                            'display': 'flex',
+                        },
+                        value=False
+                    ),
+                    dcc.RangeSlider(
+                        id={'type': 'RS', 'index': i},
+                        min=minvalue,
+                        max=maxvalue,
+                        step=step,
+                        value=[minvalue, maxvalue],
+                        marks={str(marks[h]) : {'label' : str(marks[h])} for h in range(len(marks))},
+                    ),
                 ]
                 )
             )
