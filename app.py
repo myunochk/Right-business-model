@@ -1,37 +1,34 @@
 # -*- coding: utf-8 -*-
 #TODO: add more logs, add more exceptions
 #TODO: If first col have naming then Rebuild Full Logic
-#TODO: Consider adding tabs
+#TODO: must parse_data only one time
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_daq as daq # ToggleSwitch
-from dash.dependencies import Input, Output, State, MATCH, ALL
+from dash.dependencies import Input, Output, ALL
 import pandas as pd
 import numpy as np
 import dash_table
 import io
 import os
 import base64
-from random import randint,seed
-from colored import fg
-import json
+import random
 import flask
 from datetime import datetime
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 server = flask.Flask(__name__)
-server.secret_key = os.environ.get('secret_key', str(randint(0, 1000000)))
 app = dash.Dash(__name__, server=server,external_stylesheets=external_stylesheets)
-
 
 colors = {
     'background': '#fff',
     'text': '#111'
 }
+
 def generate_graph(dataframe, TS = 0, RS = [[0,0],[0,0]]):
-    seed(datetime.now().time())
-    Pareto = optimalPareto(dataframe.to_numpy(), TS, RS)
+    random.seed(datetime.now())
+    Pareto = optimalPareto(dataframe.to_numpy(), TS = TS, RS = RS)
     dates = []
     for i in range(len(Pareto)):
         P = Pareto[i]
@@ -46,10 +43,9 @@ def generate_graph(dataframe, TS = 0, RS = [[0,0],[0,0]]):
                 #If they are not, then the first column will be x, the second y, etc.
                 x=X,
                 y=Y,
-                name=f'Pareto {i}',
+                name=f'Pareto {i+1}',
                 mode='markers',
                 marker=dict(
-                    color=fg(randint(1,255)),
                     line={'width': 0.5, 'color': 'white'},
                     size=Size,
                 ),
@@ -70,32 +66,32 @@ def generate_graph(dataframe, TS = 0, RS = [[0,0],[0,0]]):
 
 def generate_table(dataframe):
     return dash_table.DataTable(
-            data=dataframe.to_dict('records'),
-            columns=[{'name': i, 'id': i} for i in dataframe.columns],
-            #editable=True,
-            style_cell={
-                'textAlign': 'left',
-                'border': '1px solid grey',
-            },
-            style_header={
-                'border': '1px solid black'},
-            style_data={
-                'whiteSpace': 'normal',
-                'height': 'auto',
-            },
-            css=[
-                {
-                    'selector': 'table',
-                    'rule': 'auto'
-                }
-            ],
-            style_table={
-                'maxHeight': '300px',
-                'width': '50%',
-                'overflowY': 'scroll',
-                'border': 'thin lightgrey solid'
-            },
-            )
+        data=dataframe.to_dict('records'),
+        columns=[{'name': i, 'id': i} for i in dataframe.columns],
+        #editable=True,
+        style_cell={
+            'textAlign': 'left',
+            'border': '1px solid grey',
+        },
+        style_header={
+            'border': '1px solid black'},
+        style_data={
+            'whiteSpace': 'normal',
+            'height': 'auto',
+        },
+        css=[
+            {
+                'selector': 'table',
+                'rule': 'auto'
+            }
+        ],
+        style_table={
+            'maxHeight': '300px',
+            #'width': '50%',
+            'overflowY': 'scroll',
+            'border': 'thin lightgrey solid'
+        },
+    )
 
 def parse_data(contents, filename):
     content_type, content_string = contents.split(',')
@@ -112,6 +108,10 @@ def parse_data(contents, filename):
             # Assume that the user upl, delimiter = r'\s+' added an excel file
             df = pd.read_csv(
                 io.StringIO(decoded.decode('utf-8')), delimiter = r'\s+')
+        print(type(df))
+        if not pd.to_numeric(df.iloc[:, 0], errors='coerce').notnull().all():
+            df = df.iloc[:, 1:]
+        print()
     except Exception as e:
         print(e)
         return html.Div([
@@ -146,15 +146,24 @@ app.layout = html.Div(children=(
             'margin': '10px'
         },
         # Allow multiple files to be uploaded
-        multiple=True
+        multiple=False
     ),
-    html.Div(id='output-data-TS'),
     dcc.Dropdown(
         id='model-selector',
         value=""
     ),
-    html.Div(id='output-data-pareto'),
-    html.Div(id='output-data-table'),
+    dcc.Tabs([
+        dcc.Tab(label='Pareto',
+                children=[
+                    html.Div(id='output-data-TS'),
+                    html.Div(id='output-data-pareto'),
+                ]
+                ),
+        dcc.Tab(label='Table',
+                children=html.Div(id='output-data-table'),
+                ),
+    ]
+    ),
     html.Div(id='output-data-graph'),
     html.H1(
         children='Hello Dash',
@@ -163,13 +172,14 @@ app.layout = html.Div(children=(
             'color': colors['text']
         }
     ),
-    #generate_graph(data),
-    html.Div(children='Dash: A web application framework for Python.', style={
-        'textAlign': 'center',
-        'color': colors['text']
-    })
-))
-
+    html.Div(children='Dash: A web application framework for Python.',
+             style={
+                 'textAlign': 'center',
+                 'color': colors['text']
+             }
+             )
+)
+)
 pre_style = {
     'whiteSpace': 'pre-wrap',
     'wordBreak': 'break-all',
@@ -182,18 +192,18 @@ def chengeoption(a):
 
 def optimalPareto(df, TS = 0, RS = [[0,0],[0,0]]):
     Pareto = []
-    if TS == 0:
-        TS=[False] * len(df)
     while len(df)>0:
         pareto = df[:]
         #maybe rewite with [x >= y for i,x in enumerate(a) for j,y in enumerate(a) if i != j]
         for a in df:
             try:
                 for indexcolumn in range(len(a)):
-                    if len(RS)==len(a) and  not (a[indexcolumn] >= RS[indexcolumn][0] and a[indexcolumn] <= RS[indexcolumn][1]):
+                    if len(RS)==len(a) and  not (a[indexcolumn] >= RS[indexcolumn][0]
+                                                 and a[indexcolumn] <= RS[indexcolumn][1]):
                         df = np.delete(df, np.where(np.all(df == a, axis=1)), axis=0)
                         if len(pareto) > 0 and a in pareto:
                             pareto = np.delete(pareto, np.where(np.all(pareto == a, axis=1)), axis=0)
+                        continue
             except Exception as e:
                 print(e)
             for b in df:
@@ -224,11 +234,9 @@ def optimalPareto(df, TS = 0, RS = [[0,0],[0,0]]):
 def printPareto(contents, filename, TS, RS):
     paretoListDiv = []
     if contents:
-        contents = contents[0]
-        filename = filename[0]
         pareto = parse_data(contents, filename)
         #Pareto.reverse()
-        Pareto = optimalPareto(pareto.to_numpy(), TS, RS)
+        Pareto = optimalPareto(pareto.to_numpy(), TS = TS, RS = RS)
         for index in range(len(Pareto)):
             paretoListDiv.append(
                 html.Details(
@@ -256,11 +264,7 @@ def printPareto(contents, filename, TS, RS):
 def update_table(contents, filename):
     table = []
     if contents:
-        children = [
-            parse_data(c, n) for c, n in
-            zip(contents, filename)]
-        for i in range(len(children)):
-            table.append(generate_table(children[i]))
+        table.append(generate_table(parse_data(contents, filename)))
     return table
 
 #Out graph with data from uploaded file(s)
@@ -272,11 +276,7 @@ def update_table(contents, filename):
 def update_graph(contents, filename, TS, RS):
     graph = []
     if contents:
-        children = [
-            parse_data(c, n) for c, n in
-            zip(contents, filename)]
-        for i in range(len(children)):
-            graph.append(generate_graph(children[i], TS, RS))
+        graph.append(generate_graph(parse_data(contents, filename), TS = TS, RS = RS))
     return graph
 
 @app.callback(Output('output-data-TS', 'children'),
@@ -287,16 +287,16 @@ def TS(dataframe):
         sizecolumns = len(dataframe[0]['props']['columns'])
         for i in range(sizecolumns):
             columnname = str(dataframe[0]['props']['columns'][i]['name'])
-            minvalue =  dataframe[0]['props']['data'][0][columnname]
+            minvalue = dataframe[0]['props']['data'][0][columnname]
             maxvalue = minvalue
             step = abs(dataframe[0]['props']['data'][1][columnname] - minvalue)
             for j in range(len(dataframe[0]['props']['data'])):
                 value = dataframe[0]['props']['data'][j][columnname]
                 minvalue = min(minvalue,value)
                 maxvalue = max(maxvalue,value)
-                if j>0:
+                if j:
                     step = min(step,abs(value-dataframe[0]['props']['data'][j-1][columnname]))
-            marks= [h for h in range(minvalue,maxvalue,max(step,int((maxvalue-minvalue)/20)))]
+            marks = [h for h in range(minvalue,maxvalue,max(step,1,int(abs(maxvalue-minvalue)/20)))]
             marks.append(maxvalue)
             TSDiv.append(
                 html.Div([
@@ -313,11 +313,7 @@ def TS(dataframe):
                     style={
                         'position': 'relative',
                         'display': 'flex',
-                        #'width': '10%',
-                        #'margin': '5px',
-                        #'margin-left': '20px',
-                        #'left' : '5%',
-                        },
+                    },
                     value=False
                 ),
                 dcc.RangeSlider(
