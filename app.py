@@ -45,15 +45,18 @@ tab_selected_style = {
 }
 
 def generate_graph(dataframe, TS = 0, RS = [[0,0],[0,0]], names = []):
-    random.seed(datetime.now())
     Pareto = optimalPareto(pd.DataFrame(dataframe).to_numpy(), TS = TS, RS = RS)
+    listvalues = [list(d.values()) for d in dataframe]
     dates = []
     for i in range(len(Pareto)):
         P = Pareto[i]
-        X, Y, Size = [], [], []
+        X, Y, Size, Text = [], [], [], []
         for j in range(len(P)):
             X.append(P[j][0])
             Y.append(P[j][1])
+            if names:
+            #if list(P[j]) in listvalues:
+                Text.append(names[listvalues.index(list(P[j][:]))])
             Size.append(abs(P[j][2])+10 if len(P[j])>2 else 20)
         dates.append(
             dict(
@@ -63,7 +66,7 @@ def generate_graph(dataframe, TS = 0, RS = [[0,0],[0,0]], names = []):
                 y=Y,
                 name=f'Pareto {i+1}',
                 mode='markers',
-                hover_data=names,
+                text=Text,
                 marker=dict(
                     line={'width': 0.5, 'color': 'white'},
                     size=Size,
