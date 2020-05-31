@@ -44,7 +44,7 @@ tab_selected_style = {
     'padding': '6px'
 }
 
-def generate_graph(dataframe, TS = 0, RS = [[0,0],[0,0]]):
+def generate_graph(dataframe, TS = 0, RS = [[0,0],[0,0]], names = []):
     random.seed(datetime.now())
     Pareto = optimalPareto(pd.DataFrame(dataframe).to_numpy(), TS = TS, RS = RS)
     dates = []
@@ -63,6 +63,7 @@ def generate_graph(dataframe, TS = 0, RS = [[0,0],[0,0]]):
                 y=Y,
                 name=f'Pareto {i+1}',
                 mode='markers',
+                hover_data=names,
                 marker=dict(
                     line={'width': 0.5, 'color': 'white'},
                     size=Size,
@@ -115,6 +116,7 @@ def parse_data(contents, filename):
     content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
     try:
+        names = []
         if 'csv' in filename:
             # Assume that the user uploaded a CSV or TXT file
             df = pd.read_csv(
@@ -126,13 +128,9 @@ def parse_data(contents, filename):
             # Assume that the user upl, delimiter = r'\s+' added an excel file
             df = pd.read_csv(
                 io.StringIO(decoded.decode('utf-8')), delimiter = r'\s+')
-        print(type(df))
         if not pd.to_numeric(df.iloc[:, 0], errors='coerce').notnull().all():
+            names = df.iloc[:, 0]
             df = df.iloc[:, 1:]
-            names = df.iloc[:, 0]
-        else:
-            names = df.iloc[:, 0]
-        print()
     except Exception as e:
         print(e)
         return html.Div([
@@ -140,6 +138,14 @@ def parse_data(contents, filename):
         ])
     return df, names
 
+def parse_df_name(df):
+    names = []
+    if df['columns'][0]['name'] == 'name':
+        for x in df['data']:
+            names.append(x.get('name'))
+            x.pop('name', None)
+        del df['columns'][0]
+    return df, names
 #app.scripts.config.serve_locally = True
 #app.config.suppress_callback_exceptions = True
 #app.server.config.suppress_callback_exceptions = True
@@ -250,16 +256,27 @@ def optimalPareto(df, TS = 0, RS = [[0,0],[0,0]]):
 
 #Out paretoList with data from uploaded file(s)
 @app.callback(Output('output-data-pareto', 'children'),
-            [Input('output-data-table', 'children'),
-             Input({'type': 'TS', 'index': ALL}, 'value'),
-             Input({'type': 'RS', 'index': ALL}, 'value')])
+              [Input('output-data-table', 'children'),
+               Input({'type': 'TS', 'index': ALL}, 'value'),
+               Input({'type': 'RS', 'index': ALL}, 'value')])
 def printPareto(dataframe, TS, RS):
     paretoListDiv = []
     if len(dataframe):
-        dataframe = dataframe[0]['props']['data']
+        dataframe = dataframe[0]['props']
         #Pareto.reverse()
-        Pareto = optimalPareto(pd.DataFrame(dataframe).to_numpy(), TS = TS, RS = RS)
-        for index in range(len(Pareto)):
+        dataframe, names = parse_df_name(dataframe)
+        listvalues = [list(d.values()) for d in dataframe['data'][0:]]
+        Pareto = optimalPareto(pd.DataFrame(dataframe['data']).to_numpy(), TS = TS, RS = RS)
+        lenPareto = len(Pareto)
+        for index in range(lenPareto):
+            #print(listvalues)
+            nameParetoDiv = Pareto[index]
+            if len(names):
+                nameParetoDiv = []
+                for inParetoindex in range(len(Pareto[index])):
+                    nameParetoDiv.append(names[listvalues.index(list(Pareto[index][inParetoindex]))])
+            #print(set(dataframe['data'][:]))
+            #print(set(Pareto[index][0]))
             paretoListDiv.append(
                 html.Details(
                     [
@@ -267,13 +284,14 @@ def printPareto(dataframe, TS, RS):
                         f'Pareto{index+1}'
                     ),
                     html.Div(
-                        [f"{Pareto[index]}"],
+                        [f"{nameParetoDiv}"],
                         id={'type': 'Pareto','index': index},
                         )
                     ],
                     open=False,
                     title="Pareto" + str(index + 1),
-                ))
+                )
+            )
             #print(f"{Pareto[index]}")
             #print()
     #createCallback(len(paretoListDiv))
@@ -287,6 +305,8 @@ def update_table(contents, filename):
     table = []
     if contents:
         tablecontent, names = parse_data(contents, filename)
+        if len(names):
+            tablecontent.insert(loc=0, column='name', value=names)
         table.append(generate_table(tablecontent))
     return table
 
@@ -298,8 +318,10 @@ def update_table(contents, filename):
 def update_graph(dataframe, TS, RS):
     graph = []
     if len(dataframe):
-        dataframe = dataframe[0]['props']['data']
-        graph.append(generate_graph(dataframe, TS = TS, RS = RS))
+        dataframe = dataframe[0]['props']
+        dataframe, names = parse_df_name(dataframe)
+        dataframe = dataframe['data']
+        graph.append(generate_graph(dataframe, TS = TS, RS = RS, names = names))
     return graph
 
 @app.callback(Output('output-data-TS', 'children'),
@@ -307,18 +329,20 @@ def update_graph(dataframe, TS, RS):
 def TS(dataframe):
     TSDiv = []
     if dataframe:
-        sizecolumns = len(dataframe[0]['props']['columns'])
+        dataframe = dataframe[0]['props']
+        dataframe, names = parse_df_name(dataframe)
+        sizecolumns = len(dataframe['columns'])
         for i in range(sizecolumns):
-            columnname = str(dataframe[0]['props']['columns'][i]['name'])
-            minvalue = dataframe[0]['props']['data'][0][columnname]
+            columnname = str(dataframe['columns'][i]['name'])
+            minvalue = dataframe['data'][0][columnname]
             maxvalue = minvalue
-            step = abs(dataframe[0]['props']['data'][1][columnname] - minvalue)
-            for j in range(len(dataframe[0]['props']['data'])):
-                value = dataframe[0]['props']['data'][j][columnname]
+            step = 1#abs(dataframe[0]['props']['data'][1][columnname] - minvalue)
+            for j in range(len(dataframe['data'])):
+                value = dataframe['data'][j][columnname]
                 minvalue = min(minvalue,value)
                 maxvalue = max(maxvalue,value)
-                if j:
-                    step = min(step,abs(value-dataframe[0]['props']['data'][j-1][columnname]))
+                #if j:
+                #    step = min(step,abs(value-dataframe[0]['props']['data'][j-1][columnname]))
             marks = []
             if max(step,int(abs(maxvalue-minvalue)/20)):
                 for mark in range(minvalue,maxvalue,max(step,int(abs(maxvalue-minvalue)/20))):
