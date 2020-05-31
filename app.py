@@ -25,6 +25,25 @@ colors = {
     'text': '#111'
 }
 
+tabs_styles = {
+    'height': '84px'
+}
+tab_style = {
+    'borderBottom': '2px solid #236604',
+    'borderTop': '2px solid #236604',
+    'padding': '6px',
+}
+
+tab_selected_style = {
+    'borderBottom': '2px solid #e17dfa',
+    #'background': 'linear-gradient(135deg, orange, orange 60%, cyan)',
+    #'background': 'linear-gradient(to right,red,orange,yellow,green,blue,pink)',
+#'background': 'radial-gradient(center, ellipse cover, rgba(255,175,75,1) 0%, rgba(0,0,0,1) 100%)',
+    'color': 'black',
+    'fontWeight': 'bold',
+    'padding': '6px'
+}
+
 def generate_graph(dataframe, TS = 0, RS = [[0,0],[0,0]]):
     random.seed(datetime.now())
     Pareto = optimalPareto(pd.DataFrame(dataframe).to_numpy(), TS = TS, RS = RS)
@@ -138,7 +157,7 @@ app.layout = html.Div(children=(
             html.A('Select Files')
         ]),
         style={
-            'width': '50%',
+            #'width': '50%',
             'height': '60px',
             'lineHeight': '60px',
             'borderWidth': '1px',
@@ -159,10 +178,12 @@ app.layout = html.Div(children=(
                 children=[
                     html.Div(id='output-data-TS'),
                     html.Div(id='output-data-pareto'),
-                ]
+                ],
+                style=tab_style, selected_style=tab_selected_style,
                 ),
         dcc.Tab(label='Table',
                 children=html.Div(id='output-data-table'),
+                style=tab_style, selected_style=tab_selected_style,
                 ),
     ]
     ),
