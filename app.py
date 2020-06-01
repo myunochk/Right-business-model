@@ -32,6 +32,7 @@ tab_style = {
     'borderBottom': '2px solid #236604',
     'borderTop': '2px solid #236604',
     'padding': '6px',
+    'margin-bottom': '25px',
 }
 
 tab_selected_style = {
@@ -41,7 +42,8 @@ tab_selected_style = {
 #'background': 'radial-gradient(center, ellipse cover, rgba(255,175,75,1) 0%, rgba(0,0,0,1) 100%)',
     'color': 'black',
     'fontWeight': 'bold',
-    'padding': '6px'
+    'padding': '6px',
+    'margin-bottom': '25px',
 }
 
 def generate_graph(dataframe, TS = 0, RS = [[0,0],[0,0]], names = []):
@@ -347,8 +349,8 @@ def TS(dataframe):
                 #if j:
                 #    step = min(step,abs(value-dataframe[0]['props']['data'][j-1][columnname]))
             marks = []
-            if max(step,int(abs(maxvalue-minvalue)/20)):
-                for mark in range(minvalue,maxvalue,max(step,int(abs(maxvalue-minvalue)/20))):
+            if max(step,int(abs(maxvalue-minvalue)//20)):
+                for mark in range(int(minvalue),round(maxvalue),max(step,int(abs(maxvalue-minvalue)//20))):
                     marks.append(mark)
             marks.append(maxvalue)
             TSDiv.append(
