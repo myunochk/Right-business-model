@@ -59,7 +59,8 @@ def generate_graph(dataframe, TS = 0, RS = [[0,0],[0,0]], names = []):
             if names:
             #if list(P[j]) in listvalues:
                 Text.append(names[listvalues.index(list(P[j][:]))])
-            Size.append(abs(P[j][2])+10 if len(P[j])>2 else 20)
+            Size.append(
+                abs(float(str(abs(P[j][2]))[0:1]))+10 if len(P[j])>2 and len(str(abs(P[j][2])))>1 else 20)
         dates.append(
             dict(
                 # TODO: Check for the existence of 'x' 'y' 'z' size.
@@ -341,18 +342,15 @@ def TS(dataframe):
             columnname = str(dataframe['columns'][i]['name'])
             minvalue = dataframe['data'][0][columnname]
             maxvalue = minvalue
-            step = 1#abs(dataframe[0]['props']['data'][1][columnname] - minvalue)
+            marks = []
             for j in range(len(dataframe['data'])):
                 value = dataframe['data'][j][columnname]
                 minvalue = min(minvalue,value)
                 maxvalue = max(maxvalue,value)
-                #if j:
-                #    step = min(step,abs(value-dataframe[0]['props']['data'][j-1][columnname]))
-            marks = []
-            if max(step,int(abs(maxvalue-minvalue)//20)):
-                for mark in range(int(minvalue),round(maxvalue),max(step,int(abs(maxvalue-minvalue)//20))):
-                    marks.append(mark)
-            marks.append(maxvalue)
+                marks.append(round(value,2))
+            marks.sort()
+            marksdiffers = [abs(x - y) for i, x in enumerate(marks) for j, y in enumerate(marks) if i > j and x != y]
+            minmarksdiffers = min(marksdiffers)
             TSDiv.append(
                 html.Div([
                     html.Div(children=columnname,
@@ -375,7 +373,7 @@ def TS(dataframe):
                         id={'type': 'RS', 'index': i},
                         min=minvalue,
                         max=maxvalue,
-                        step=step,
+                        step=minmarksdiffers,
                         value=[minvalue, maxvalue],
                         marks={str(marks[h]) : {'label' : str(marks[h])} for h in range(len(marks))},
                     ),
