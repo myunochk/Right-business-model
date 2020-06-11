@@ -10,36 +10,30 @@ import pandas as pd
 import numpy as np
 import dash_table
 import io
-import os
 import base64
-import random
 import flask
-from datetime import datetime
-
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 server = flask.Flask(__name__)
-app = dash.Dash(__name__, server=server,external_stylesheets=external_stylesheets)
+app = dash.Dash(__name__, server=server, external_stylesheets=external_stylesheets)
 
 colors = {
-    'background': '#fff',
+    'background': '#e3f4fd',
     'text': '#111'
 }
 
 tabs_styles = {
-    'height': '84px'
+    'height': '84px',
 }
 tab_style = {
-    'borderBottom': '2px solid #236604',
-    'borderTop': '2px solid #236604',
+    'background': colors['background'],
     'padding': '6px',
     'margin-bottom': '25px',
 }
 
 tab_selected_style = {
-    'borderBottom': '2px solid #e17dfa',
-    #'background': 'linear-gradient(135deg, orange, orange 60%, cyan)',
-    #'background': 'linear-gradient(to right,red,orange,yellow,green,blue,pink)',
-#'background': 'radial-gradient(center, ellipse cover, rgba(255,175,75,1) 0%, rgba(0,0,0,1) 100%)',
+    'background': colors['background'],
+    'borderBottom': '5px solid #a0d9f8',
+    'border-top': '5px solid #a0d9f8',
     'color': 'black',
     'fontWeight': 'bold',
     'padding': '6px',
@@ -80,7 +74,7 @@ def generate_graph(dataframe, TS = 0, RS = [[0,0],[0,0]], names = []):
         figure=dict(
             data = dates,
             layout={
-                'plot_bgcolor': colors['background'],
+                'plot_bgcolor': '#a0d9f8',
                 'paper_bgcolor': colors['background'],
                 'font': {
                     'color': colors['text']
@@ -97,6 +91,7 @@ def generate_table(dataframe):
         style_cell={
             'textAlign': 'left',
             'border': '1px solid grey',
+            'background': colors['background'],
         },
         style_header={
             'border': '1px solid black'},
@@ -172,8 +167,8 @@ app.layout = html.Div(children=(
             #'width': '50%',
             'height': '60px',
             'lineHeight': '60px',
-            'borderWidth': '1px',
-            'borderStyle': 'dashed',
+            'borderWidth': '4px',
+            'borderStyle': 'double',
             'borderRadius': '5px',
             'textAlign': 'center',
             'margin': '10px'
@@ -183,7 +178,13 @@ app.layout = html.Div(children=(
     ),
     dcc.Dropdown(
         id='model-selector',
-        value=""
+        value="",
+        placeholder="Select pareto",
+        style={
+            'background': colors['background'],
+            'margin' : '5px',
+            'margin-right' : '15px',
+        },
     ),
     dcc.Tabs([
         dcc.Tab(label='Pareto',
@@ -197,23 +198,11 @@ app.layout = html.Div(children=(
                 children=html.Div(id='output-data-table'),
                 style=tab_style, selected_style=tab_selected_style,
                 ),
-    ]
+    ],
     ),
     html.Div(id='output-data-graph'),
-    html.H1(
-        children='Hello Dash',
-        style={
-            'textAlign': 'center',
-            'color': colors['text']
-        }
-    ),
-    html.Div(children='Dash: A web application framework for Python.',
-             style={
-                 'textAlign': 'center',
-                 'color': colors['text']
-             }
-             )
-)
+),
+    style = {'background': colors['background']},
 )
 pre_style = {
     'whiteSpace': 'pre-wrap',
@@ -364,10 +353,13 @@ def TS(dataframe):
                         id={'type': 'TS', 'index': i},
                         label=['min', 'max'],
                         style={
+                            'background': colors['background'],
+                            'margin': '5px',
+                            'margin-right': '15px',
                             'position': 'relative',
                             'display': 'flex',
                         },
-                        value=False
+                        value=False,
                     ),
                     dcc.RangeSlider(
                         id={'type': 'RS', 'index': i},
