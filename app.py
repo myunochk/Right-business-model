@@ -12,6 +12,8 @@ import dash_table
 import io
 import base64
 import flask
+from datetime import datetime
+import time
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 server = flask.Flask(__name__)
 app = dash.Dash(__name__, server=server, external_stylesheets=external_stylesheets)
@@ -216,6 +218,7 @@ def chengeoption(a):
 
 def optimalPareto(df, TS = 0, RS = [[0,0],[0,0]]):
     Pareto = []
+    start_time = datetime.now()
     while len(df)>0:
         pareto = df[:]
         #maybe rewite with [x >= y for i,x in enumerate(a) for j,y in enumerate(a) if i != j]
@@ -246,6 +249,8 @@ def optimalPareto(df, TS = 0, RS = [[0,0],[0,0]]):
         df = np.array(list((set(map(tuple, df)).difference(set(map(tuple, pareto))))))
         if len(pareto):
             Pareto.append(pareto)
+        print("Time: ",datetime.now() - start_time)
+    print("Time script: ",datetime.now() - start_time)
     return Pareto
     #return printPareto(pareto,index)
 
@@ -336,10 +341,18 @@ def TS(dataframe):
                 value = dataframe['data'][j][columnname]
                 minvalue = min(minvalue,value)
                 maxvalue = max(maxvalue,value)
-                marks.append(round(value,2))
+                if round(value,2) not in marks:
+                    marks.append(round(value,2))
             marks.sort()
             marksdiffers = [abs(x - y) for i, x in enumerate(marks) for j, y in enumerate(marks) if i > j and x != y]
             minmarksdiffers = min(marksdiffers)
+            if len(marks)>20:
+                marks.clear()
+                marks.append(minvalue)
+                step = int((maxvalue-minvalue)/20)
+                for i in range(minvalue,maxvalue-int(step/2),step):
+                    marks.append(i)
+                marks.append(maxvalue)
             TSDiv.append(
                 html.Div([
                     html.Div(children=columnname,
